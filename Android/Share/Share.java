@@ -13,28 +13,29 @@ import org.json.JSONObject;
 
 import android.content.Intent;
 
-import org.apache.cordova.api.Plugin;
-import org.apache.cordova.api.PluginResult;
+import org.apache.cordova.api.CallbackContext;
+import org.apache.cordova.api.CordovaPlugin;
 
 public class Share extends Plugin {
 
 	@Override
-	public PluginResult execute(String action, JSONArray args, String callbackId) {
+	public boolean execute(String action, JSONArray args, final CallbackContext callbackContext) {
 		try {
 			JSONObject jo = args.getJSONObject(0);
-			doSendIntent(jo.getString("subject"), jo.getString("text")); 
-			return new PluginResult(PluginResult.Status.OK);
+			doSendIntent(jo.getString("title"), jo.getString("subject"), jo.getString("text")); 
+			callbackContext.success();
 		} catch (JSONException e) {
-			return new PluginResult(PluginResult.Status.JSON_EXCEPTION);
+			callbackContext.error(e.getMessage());
 		}
+		return true;
 	}
 	
-	private void doSendIntent(String subject, String text) {
+	private void doSendIntent(String title, String subject, String text) {
 		Intent sendIntent = new Intent(android.content.Intent.ACTION_SEND);
 		sendIntent.setType("text/plain");
 		sendIntent.putExtra(android.content.Intent.EXTRA_SUBJECT, subject);
 		sendIntent.putExtra(android.content.Intent.EXTRA_TEXT, text);
-		this.cordova.startActivityForResult(this, sendIntent, 0);
+		this.cordova.startActivityForResult(this, Intent.createChooser(sendIntent, title), 0);
 	}
 
 }
